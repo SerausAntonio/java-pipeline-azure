@@ -47,7 +47,7 @@ public class LoginBasicTest {
                 {"visual_user"}
         };
     }
-//docker run -d -p 4444:4444 -p 7900:7900 --shm-size="2g" --name browser-container selenium/standalone-chrome:lates
+//docker run -d -p 4444:4444 -p 7900:7900 --shm-size="2g" --name browser-container selenium/standalone-chrome:latest
     @Test(dataProvider = "userAccounts")
     public void loginTest(String username){
           driver.get("https://www.saucedemo.com/");
