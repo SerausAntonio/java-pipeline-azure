@@ -3,10 +3,6 @@
 # Add steps that analyze code, save build artifacts, deploy, and more:
 # https://docs.microsoft.com/azure/devops/pipelines/languages/java
 
-# Maven
-# Build your Java project and run tests with Apache Maven.
-# Add steps that analyze code, save build artifacts, deploy, and more:
-# https://docs.microsoft.com/azure/devops/pipelines/languages/java
 
 trigger:
 - main
@@ -19,20 +15,33 @@ steps:
     docker run -d -p 4444:4444 -p 7900:7900 --shm-size="2g" --name browser-container selenium/standalone-chrome:latest
   displayName: 'Start Selenium Chrome container'
 
+- script: |
+    curl -o allure-2.27.0.tgz -L https://github.com/allure-framework/allure2/releases/download/2.27.0/allure-2.27.0.tgz
+    tar -zxvf allure-2.27.0.tgz
+    sudo mv allure-2.27.0 /opt/allure
+    sudo ln -s /opt/allure/bin/allure /usr/bin/allure
+  displayName: 'Install Allure CLI'
+
 - task: Maven@3
   inputs:
     mavenPomFile: 'pom.xml'
     mavenOptions: '-Xmx3072m'
     javaHomeOption: 'JDKVersion'
-    jdkVersionOption: '21'          # Zorg dat dit matcht met je pom.xml
+    jdkVersionOption: '21'
     jdkArchitectureOption: 'x64'
     publishJUnitResults: true
     testResultsFiles: '**/surefire-reports/TEST-*.xml'
-    goals: 'package'
+    goals: 'clean test'
+
+- script: |
+    allure generate target/allure-results --clean -o allure-report
+  displayName: 'Generate Allure Report'
+
+- publish: allure-report
+  artifact: allure-report
+  displayName: 'Publish Allure Report Artifact'
 
 - script: |
     docker stop browser-container
     docker rm browser-container
   displayName: 'Stop and remove Selenium Chrome container'
-
-
